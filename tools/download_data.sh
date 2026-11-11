@@ -21,6 +21,8 @@ curl -sfL "https://codeload.github.com/Roboparty/rp1_description/tar.gz/$RP1" |
 cp assets/rp1_28dof_mjlab/rp1_28dof.xml data/rp1_28dof_mjlab/
 echo "RP1: $(ls data/rp1_28dof_mjlab/meshes | wc -l) meshes"
 
+python3 tools/data/n3_assets.py
+
 UM=1a37b051a10be723405b7ed6dc839361af036d88  # github.com/unitreerobotics/unitree_mujoco: G1 of tools/diversity
 mkdir -p data/unitree_mujoco_g1
 curl -sfL "https://codeload.github.com/unitreerobotics/unitree_mujoco/tar.gz/$UM" |

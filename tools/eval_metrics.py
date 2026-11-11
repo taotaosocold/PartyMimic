@@ -36,20 +36,18 @@ from partymimic.motion import MotionLib
 from partymimic.networks import Policy, policy_kwargs
 from partymimic.robot import get_robot
 
-CONTACT_Z = 0.045  # ankle-roll link origin height below which a foot counts as in contact (flat foot: ~0.035 m)
-FLAT_Z = 0.033
-
 torch.backends.cuda.matmul.allow_tf32 = True
 dev = "cuda:0"
 robot = get_robot(args.robot)
+CONTACT_Z, FLAT_Z = robot.contact_height, robot.foot_height
 kin = Kinematics(robot, dev)
 motion = MotionLib.from_dir(robot.motion_dir, robot, kin, dev)
 _args_json = os.path.join(os.path.dirname(args.ckpts[0]), "args.json")  # one interface for all checkpoints (load_policy)
 motion.set_interface(json.load(open(_args_json)).get("interface", "joint") if os.path.exists(_args_json) else "joint",
-                     robot.tracked_bodies)
+                     robot.tracked_bodies, robot.keypoint_bodies)
 mdp = MDP(kin, motion, torch.tensor(robot.default_joint_pos_list(), device=dev), XiLayout(robot, dev).dim, robot.sensing)
 C = len(motion.names)
-FEET = [robot.tracked_bodies.index(b) for b in ("left_ankle_roll_link", "right_ankle_roll_link")]
+FEET = [robot.tracked_bodies.index(b) for b in robot.foot_bodies]
 
 
 def load_policy(ck):

@@ -15,7 +15,7 @@ REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)
 ON = argparse.BooleanOptionalAction
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--robot", type=str, default="g1mj", help="robot package under partymimic/ (g1mj, rp1, g1)")
+parser.add_argument("--robot", type=str, default="g1mj", help="robot package under partymimic/ (g1mj, rp1, n3, g1)")
 parser.add_argument("--motion_dir", type=str, default=None, help="defaults to the robot's motion directory")
 parser.add_argument("--log_dir", type=str, default=os.path.join(REPO, "logs", "run"))
 parser.add_argument("--seed", type=int, default=0)
@@ -163,7 +163,7 @@ robot = get_robot(args.robot)
 J = robot.num_joints
 kin = Kinematics(robot, dev)
 motion = MotionLib.from_dir(args.motion_dir or robot.motion_dir, robot, kin, dev)
-motion.set_interface(args.interface, robot.tracked_bodies)
+motion.set_interface(args.interface, robot.tracked_bodies, robot.keypoint_bodies)
 layout = XiLayout(robot, dev)
 normalize_xi = layout.normalize
 _rc, _s = RewardCfg(), args.std_scale
@@ -316,10 +316,10 @@ def _wm_rollout(s, a, a_prev, xi):
     return tuple(torch.stack([P[i] for P in preds], 1) for i in range(6))  # (B, k, ...)
 
 
-_FEET = ("left_ankle_roll_link", "right_ankle_roll_link")
+_FEET = robot.foot_bodies
 FEET = [robot.tracked_bodies.index(b) for b in _FEET] if all(b in robot.tracked_bodies for b in _FEET) else []
 mdp.feet = FEET
-assert args.contact_reward == 0 or FEET, "--contact_reward needs foot bodies (g1)"
+assert args.contact_reward == 0 or FEET, "--contact_reward needs tracked foot bodies"
 motion.set_ref_contact(FEET)
 
 

@@ -19,6 +19,7 @@ class Kinematics:
     def __init__(self, robot: RobotSpec, device: str):
         m = mujoco.MjModel.from_xml_path(robot.mjcf_path)
         self.device = device
+        self.contact_height = robot.contact_height
         tracked = robot.tracked_bodies
         jname_to_idx = {n: i for i, n in enumerate(robot.joint_names)}
         # moving bodies in tree order (mujoco orders parents before children)

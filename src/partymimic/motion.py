@@ -138,7 +138,7 @@ class MotionLib:
 
     @staticmethod
     def from_dir(path: str, robot: RobotSpec, kin: Kinematics, device: str) -> MotionLib:
-        files = sorted(glob.glob(os.path.join(path, robot.motion_glob)))
+        files = sorted(glob.glob(os.path.join(path, robot.motion_glob), recursive=True))
         if not files:  # humanoid_s0 motion library: npz clips of world body states, pelvis first
             return MotionLib(sorted(glob.glob(os.path.join(path, "*.npz"))), kin, device, load_npz)
         return MotionLib(files, kin, device, robot.load_motion)
@@ -158,11 +158,11 @@ class MotionLib:
     interface = "joint"
     kp: list[int] | None = None  # sparse5: tracked-body indices of the keypoints (sparse5_bodies)
 
-    def set_interface(self, interface: str, tracked: tuple[str, ...]) -> None:
+    def set_interface(self, interface: str, tracked: tuple[str, ...], keypoints: tuple[str, ...] | None = None) -> None:
         assert interface in INTERFACES, interface
         self.interface = interface
         if interface == "sparse5":
-            self.kp = sparse5_bodies(tuple(tracked))
+            self.kp = [tracked.index(n) for n in keypoints] if keypoints is not None else sparse5_bodies(tuple(tracked))
             self.kp_p, self.kp_R = self.body_p[:, self.kp].contiguous(), self.body_R[:, self.kp].contiguous()
 
     def goal_dim(self, K: int) -> int:

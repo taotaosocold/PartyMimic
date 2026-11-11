@@ -22,7 +22,7 @@ class Mirror:
             partner = n.replace("left_", "@").replace("right_", "left_").replace("@", "right_")
             perm.append(names.index(partner))
             sign.append(-1.0 if any(f"_{t}_" in n for t in _FLIP_TYPES) else 1.0)
-        self.perm = torch.tensor(perm, device=device)
+        self.perm = torch.tensor(robot.mirror_permutation or perm, device=device)
         self.sign = torch.tensor(robot.mirror_sign or sign, device=device)
         self.M = torch.diag(torch.tensor([1.0, -1.0, 1.0], device=device))
         self.xi_slices = xi_slices

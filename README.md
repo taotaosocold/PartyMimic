@@ -87,6 +87,11 @@ tools/download_data.sh     # G1 description + 40 LAFAN1 G1 clips, RP1 meshes + M
 (pinned commit) and copies the capsule-collision MJCF of [`assets/rp1_28dof_mjlab`](assets/rp1_28dof_mjlab) next to
 them (`data/rp1_28dof_mjlab/`), which is the model PartyMimic and the evaluator simulate.
 
+**N3 V3.** `python tools/data/n3_assets.py` prepares `data/n3_29dof_mjlab/n3_29dof.xml` and its
+meshes from the vendored `assets/n3_29dof_mjlab/` sources (also run by `download_data.sh`). Training
+loads this `data/` copy, as for RP1. Robot parameters follow the N3 configuration in GR00T-WholeBodyControl;
+the model, meshes and provenance are self-contained. See `assets/n3_29dof_mjlab/README.md`.
+
 ## Data
 
 Every clip comes from a public dataset:
@@ -148,9 +153,21 @@ The defaults of `partymimic.train` are the PartyMimic recipe:
 ```bash
 bash scripts/train.sh logs/g1_s0  --robot g1mj --motion_dir data/motions/g1_mix  --seed 0   # 12k iterations, ~26 min
 bash scripts/train.sh logs/rp1_s0 --robot rp1  --motion_dir data/motions/rp1_mix --seed 0
+bash scripts/train.sh logs/n3_s0  --robot n3   --motion_dir data/motions/n3/seed --seed 0
 # two GPUs: collection + world model on cuda:0, policy + critic on cuda:1, overlapped (1.6x the iterations per second)
 bash scripts/train.sh logs/g1_p0  --robot g1mj --motion_dir data/motions/g1_mix --seed 0 --pipeline
 ```
+
+N3 reads NPZ clips recursively, including date subdirectories. Point `--motion_dir` at the selected
+`seed/` directory, or link it to `data/motions/n3/seed`; `seed_unclassified/` stays separate. Named
+N3_0905 short joint names and V3 joint names are supported. Existing DFS data is read by name without
+another BFS permutation. The loader returns root pose and joint coordinates; PartyMimic recomputes
+velocities and FK with its N3 V3 model. This does not retarget N3_0905 geometry to V3. Check the
+reference motions' feet, joint limits and self-collisions before a full training run. `--interface sparse5`
+uses the actual N3 head and hands; joint and sparse5 share the usual training and export commands.
+N3 training results and hardware deployment are not part of the G1/RP1 benchmarks above; use
+`partymimic.evaluate --robot n3` for this simulator, since the external `sim2real` evaluator needs its
+own N3 robot support.
 
 The MLP recipe fits a standard 24 GB RTX 4090: with only 24.1 GB free, G1 and RP1 runs kept their speed and peaked
 at 22.6 and 23.4 GB. Checkpoints are written every 2,000 iterations (`ckpt_002000.pt`, ...) and `last.pt`.

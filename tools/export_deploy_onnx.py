@@ -235,14 +235,15 @@ def main() -> None:
         raise SystemExit(f"no motions in {md} for the export checks; set MOTION_DIR")
     motion = MotionLib([str(f) for f in files], kin, "cpu", loader)
     if sparse5:
-        motion.set_interface("sparse5", SPEC.tracked_bodies)
+        motion.set_interface("sparse5", SPEC.tracked_bodies, SPEC.keypoint_bodies)
         export_sparse5(pi, args, motion, kin, Path(a.out))
         return
     with torch.no_grad():
         geo = check_geometry(dep, motion)
         # relative orientation and the full policy against Policy(obs_hist, MotionLib.goal)
         g = torch.Generator().manual_seed(1)
-        f = int(motion.clip_start[3]) + 100
+        c = min(3, len(motion.names) - 1)
+        f = min(int(motion.clip_start[c]) + 100, int(motion.clip_end[c]))
         jp, rr = window(motion, f, K)
         prop = torch.randn(H * P, generator=g) * 0.3
         rq = torch.nn.functional.normalize(torch.randn(H, 4, generator=g), dim=-1)

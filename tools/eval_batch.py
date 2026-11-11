@@ -39,7 +39,7 @@ _run_args = json.load(open(os.path.join(args.run_dir, "args.json"))) if os.path.
 robot = get_robot(args.robot or _run_args.get("robot", "g1"))
 kin = Kinematics(robot, dev)
 motion = MotionLib.from_dir(_run_args.get("motion_dir") or robot.motion_dir, robot, kin, dev)  # the run's own motion set
-motion.set_interface(_run_args.get("interface", "joint"), robot.tracked_bodies)
+motion.set_interface(_run_args.get("interface", "joint"), robot.tracked_bodies, robot.keypoint_bodies)
 check_pruned(_run_args, nets_only=True, what=args.run_dir)
 mdp = MDP(kin, motion, torch.tensor(robot.default_joint_pos_list(), device=dev), XiLayout(robot, dev).dim, robot.sensing)
 C = len(motion.names)
